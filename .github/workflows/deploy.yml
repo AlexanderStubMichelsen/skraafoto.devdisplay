@@ -3,7 +3,7 @@ name: Deploy Flask + React to Linux Server
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build-and-deploy:
