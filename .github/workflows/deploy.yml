@@ -1,0 +1,72 @@
+name: Deploy Flask + React to Linux Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build React frontend
+        run: |
+          npm install
+          npm run build
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Prepare files for deployment
+        run: |
+          echo "Working directory: $(pwd)"
+          ls -alh
+
+          mkdir -p deploy
+
+          if [ -d dist ]; then
+            cp -r dist/* deploy/
+          else
+            echo "⚠️ dist/ folder not found, skipping frontend copy."
+          fi
+
+          [ -f postgress_connector.py ] && cp postgress_connector.py deploy/
+          [ -f requirements.txt ] && cp requirements.txt deploy/
+          [ -f skraafoto.wsgi ] && cp skraafoto.wsgi deploy/
+          [ -f .env ] && cp .env deploy/
+
+          echo "📁 Final deploy folder contents:"
+          ls -alh deploy/
+
+      - name: Deploy via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 172.105.95.18
+          username: root
+          key: ${{ secrets.DEPLOY_KEY }}
+          source: "deploy/*"
+          target: "/var/www/html2"
+          strip_components: 1
+
+      - name: Restart Apache
+        uses: appleboy/ssh-action@master
+        with:
+          host: 172.105.95.18
+          username: root
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            sudo systemctl restart apache2

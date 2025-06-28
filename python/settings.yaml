@@ -1,0 +1,33 @@
+# Settings for the download_from_coordinates.py script
+# Path to the cache directory
+cache_dir: "image_cache" 
+
+# Name of the collection
+collection: "skraafotos2021"
+
+image_summary: False  # true / false
+
+# Crop sizes for the images
+crop_sizes: 
+  - 400
+  - 800
+
+# Resize the images to this size
+image_resize: 400
+
+# Image quality for the downloaded images
+image_quality: 65
+
+# Concurrency and connection settings
+concurrency:
+  max_concurrent_requests: 30 # Set max amount of concurrent tasks
+  limit_per_host: 15 # Set max amount of concurrent TCP-connections per host
+
+retry_limit: 3 # Amount of retries on API error
+retry_delay: 1 # Delay in seconds
+
+#Percent of total coordinates need to fail, before process is stopped. 
+threshold: 50 # %
+
+#Logging level. INFO for low detail. DEBUG for high detail (Very verbose)
+logging_level: "DEBUG"

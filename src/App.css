@@ -1,0 +1,485 @@
+
+@import url("https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@100..700&family=Petrona:wght@100..900&display=swap");
+body{
+  background-color: #f3f3f3 !important;
+}
+.white {
+  color: #2c2c2c;
+}
+header{
+  width: 100vw;
+  background-color: white;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #d9d9d9;
+}
+.navigation{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+}
+.nav_list {
+  display: flex;
+  list-style: none;
+  justify-content: space-between;
+  font-family: "Josefin Sans", sans-serif;
+  font-weight: 400;
+  margin: 0;
+  padding: 0;
+}
+.nav-item {
+  color: #1e1e1e;
+  padding: 5px 8px 4px 8px;
+  border-radius: 7px; /* Adjust for a rounded square effect */
+  transition: background-color 0.3s ease;
+}
+.nav-item-active {
+  background-color: #f5f5f5; /* Same color as the header border */
+}
+
+.nav-item a {
+  text-decoration: none;
+  color: inherit;
+}
+a:link {
+  text-decoration: none;
+}
+a:visited {
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: none;
+}
+a:active {
+  text-decoration: none;
+}
+.nav-item:hover {
+  color: rgb(178, 178, 184);
+  transform: scale(1.08);
+}
+.response {
+  text-align: center;
+}
+
+.centerpage {
+  display: flex;
+  justify-content: center;
+}
+.page {
+  padding-top: 4%;
+  width: 100%;
+  justify-content: space-between;
+  display: flex;
+  font-family: "Josefin Sans", sans-serif;
+}
+
+.selected-image img {
+  max-width: 400px;
+  filter: drop-shadow(0 0 0.2em #646cffaa);
+  outline: 2px black solid;
+}
+.image-container {
+  position: relative;
+  display: inline-block;
+  border-radius: 15px; /* Rounded corners */
+  overflow: hidden; /* Ensure the rounded corners are applied to the image */
+  width: 500px; /* Fixed width */
+  height: 500px; /* Fixed height */
+}
+
+.image-container img {
+  border-radius: 15px;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures the image covers the container without stretching */
+  transition: transform 0.2s ease-in-out;
+  transform-origin: center center;
+}
+
+.icon {
+  cursor: pointer;
+  font-size: 1.5rem;
+  transition: color 0.2s ease;
+}
+.icon:hover {
+  color: #007bff; /* Bootstrap primary color */
+}
+
+.compass {
+  position: absolute;
+  top: 30px;
+  right: 10px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+.compass .direction {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.compass .north {
+  top: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.compass .south {
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.compass .east {
+  right: 5%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.compass .west {
+  left: 5%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.compass .nadir {
+  bottom: 50%;
+  left: 50%;
+  transform: translate(-50%, 50%);
+}
+
+.direction.active {
+  background-color: #e4718c;
+  color: white;
+  border-radius: 50%;
+}
+
+.mp-response {
+  max-width: 50%;
+}
+
+.image-gallery {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: row;
+}
+
+.high-quality-viewer {
+  margin-top: 20px;
+  width: 100%;
+  height: 100%;
+
+  display: block;
+}
+
+.thumbnails {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, auto); /* 2 columns */
+}
+.thumbnail-container {
+  flex: 1; /* Adjusts size of thumbnail containers */
+  cursor: pointer; /* Shows a pointer cursor on hover */
+}
+.image-container-multi {
+  position: relative;
+  display: inline-block;
+  border-radius: 15px; /* Rounded corners */
+  overflow: hidden; /* Ensure the rounded corners are applied to the image */
+  width: 100%; /* Fixed width */
+  height: auto; /* Fixed height */
+}
+
+.image-container-multi img {
+  display: block;
+  border-radius: 15px;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures the image covers the container without stretching */
+  transition: transform 0.2s ease-in-out;
+  transform-origin: center center;
+}
+.column {
+  flex-direction: column;
+}
+.title-and-search {
+  width: 40%;
+}
+
+.direction-title {
+  margin-top: 0;
+  margin-bottom: 0;
+  margin-left: 14px;
+}
+.mapcenterpage {
+  padding-top: 4%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: auto;   
+  font-family: "Josefin Sans", sans-serif;
+}
+.mappage {
+  display: flex;
+  flex-direction: row;
+}
+.geomap {
+  margin-top: 20px;
+  margin-right:10px;
+  width: 180vh !important;
+  height: 70vh !important;
+}
+.map-viewer {
+  position: relative;
+  width: 80vh;
+  height: 70vh;
+  display: block;
+  cursor: crosshair;
+}
+
+.map-header{
+  display: flex;
+}
+
+.toolbar {
+  display: flex;
+  gap: 10px; 
+
+  max-height: 3rem; 
+}
+
+.tool-btn {
+  background-color: white;
+  min-width: 110px;
+  font-weight: 350;
+  border: 1px solid rgb(204, 204, 204); /* Initial border style */
+  border-radius: 4px; /* Rounded corners */
+  transition: box-shadow 0.3s, color 0.3s; /* Smooth transition */
+  font-size: 20px;
+}
+
+.tool-btn:hover {
+  box-shadow: 0 0 0 0.5px rgb(204, 204, 204); /* Simulates a thicker border */
+
+}
+
+.tool-btn-active{
+  background-color: rgb(198, 198, 204);
+}
+
+.tool-select {
+  margin-left: 100px;
+}
+
+/* Media query for tablets (screen width <= 768px) */
+@media (max-width: 768px) {
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap; /* Items will wrap if they don't fit */
+    justify-content: center; /* Center items */
+    gap: 10px; 
+  }
+
+  .tool-btn {
+    font-size: 16px; /* Reduce font size */
+    min-width: 90px; /* Reduce button width */
+    margin-left: 0px; /* Remove large margins */
+    padding: 10px 5px; /* Add some padding for tap target */
+  }
+}
+
+/* Media query for small mobile phones (screen width <= 480px) */
+@media (max-width: 480px) {
+  .toolbar {
+    display: flex;
+    flex-direction: column; /* Stack buttons vertically */
+    align-items: center;
+  }
+
+  .tool-btn {
+    font-size: 14px; /* Smaller font size */
+    min-width: 80px; /* Smaller buttons */
+    width: 100%; /* Make buttons take full width */
+    margin-left: 0;
+    margin-bottom: 10px; /* Add some space between buttons */
+  }
+}
+
+.btnSvg{
+  margin: 3px;
+  height: auto;
+  margin-left: 3px;
+}
+.btnD{
+  margin-top: 3px;
+  margin-bottom: 9px;
+  width: 25px;
+}
+.btnP{
+  margin-left: 7px;
+  width: 23px;
+}
+.ol-popup {
+  position: absolute;
+  background-color: white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #cccccc;
+  bottom: 12px;
+  left: -50px;
+  min-width: 280px;
+}
+
+.ol-popup:after,
+.ol-popup:before {
+  top: 100%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+}
+
+.ol-popup:after {
+  border-top-color: white;
+  border-width: 10px;
+  left: 48px;
+  margin-left: -10px;
+}
+
+.ol-popup:before {
+  border-top-color: #cccccc;
+  border-width: 11px;
+  left: 48px;
+  margin-left: -11px;
+}
+
+.ol-popup-closer {
+  text-decoration: none;
+  position: absolute;
+  top: 2px;
+  right: 8px;
+}
+
+.ol-popup-closer:after {
+  content: "✖";
+}
+
+.iconsize{
+  width: 25px;
+  height: 20px;
+  align-self: flex-start;
+}
+.navcontainer{
+  justify-self: flex-end;
+}
+
+.error-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-left: 120px;
+  margin-right: 100px;
+  height: 70vh;
+  text-align: center;
+  background-color: #f4f4f4;
+  font-family: 'Arial', sans-serif;
+}
+
+.error-page h1 {
+  font-size: 6rem;
+  color: #ff4a4a;
+}
+
+.error-page h2 {
+  font-size: 2rem;
+  color: #333;
+}
+
+.error-page p {
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.error-message{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.home-link {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+}
+
+.home-link:hover {
+  background-color: #0056b3;
+}
+select:focus {
+  outline: none;
+}
+select{
+
+  padding-left: 6px;
+
+}
+.select-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* Hide the default arrow */
+.select-container select {
+  appearance: none; /* Remove the default arrow */
+  -webkit-appearance: none; /* Remove the default arrow in Webkit browsers */
+  -moz-appearance: none; /* Remove the default arrow in Firefox */
+  padding-right: 30px; /* Add padding to make space for custom arrow */
+  border: 1px solid rgb(204, 204, 204); /* Optional: border style */
+  border-radius: 4px; /* Optional: rounded corners */
+  height: 100%;
+}
+
+/* Custom arrow */
+.select-container::after {
+  content: ''; /* Use an empty content to create the V shape */
+  position: absolute;
+  right: 10px; /* Position the arrow */
+  top: 50%; /* Center the arrow vertically */
+  transform: translateY(-50%); /* Adjust vertical alignment */
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent; /* V shape left part */
+  border-right: 6px solid transparent; /* V shape right part */
+  border-top: 6px solid rgb(0, 0, 0); /* V shape middle part */
+  pointer-events: none; /* Prevents arrow from being interactive */
+}
+
+.loading img {
+  gap: 100px;
+  width: 50px; /* Adjust the size of the gif */
+  height: 50px;
+  margin-left: 170px;
+}
