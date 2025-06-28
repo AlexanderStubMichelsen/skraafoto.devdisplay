@@ -18,6 +18,23 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Create configuration file
+        run: |
+          cat > src/util/configuration.js << 'EOF'
+          export const configuration = {
+            db: '${{ secrets.VITE_DB }}',
+            db_user: '${{ secrets.VITE_DB_USER }}',
+            db_host: '${{ secrets.VITE_DB_HOST }}',
+            db_password: '${{ secrets.VITE_DB_PASSWORD }}',
+            db_port: '${{ secrets.VITE_DB_PORT }}',
+            api_baseurl: '${{ secrets.VITE_API_BASEURL }}',
+            api_token: '${{ secrets.VITE_API_TOKEN }}',
+            api_dhm_tokena: '${{ secrets.VITE_API_DHM_TOKENA }}',
+            api_dhm_tokenb: '${{ secrets.VITE_API_DHM_TOKENB }}',
+            api_base_url: '${{ secrets.VITE_API_BASE_URL }}'
+          }
+          EOF
+
       - name: Build React frontend
         run: |
           npm install
