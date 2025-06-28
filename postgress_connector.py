@@ -36,7 +36,7 @@ except psycopg2.DatabaseError as e:
     raise
 
 if __name__ == '__main__':
-    app.run("localhost", port="5000", debug=True)
+    app.run("0.0.0.0", port="5000", debug=True)
 
 @app.route('/in_polygon/<point_string>/<polygon_string>', methods=['GET'])
 def in_polygon(point_string, polygon_string):
