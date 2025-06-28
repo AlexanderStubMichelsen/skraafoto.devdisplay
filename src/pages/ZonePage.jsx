@@ -206,7 +206,7 @@ function ZonePage() {
 
     try {
       setLoading(true);
-      const response = await fetch(`${configuration.api_base_url}/toggle/${selectedFeature}`);
+      const response = await fetch(`${configuration.api_base_url}/api/toggle/${selectedFeature}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
