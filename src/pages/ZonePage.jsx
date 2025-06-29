@@ -155,7 +155,7 @@ function ZonePage() {
   const getPolygons = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${configuration.api_base_url}/get_plandata/${address.road} ${address.housenumber}, ${address.postalcode}`, {
+      const response = await fetch(`${configuration.api_base_url}/api/get_plandata/${address.road} ${address.housenumber}, ${address.postalcode}`, {
         method: "GET",
         mode: "cors",
         headers: { "Content-Type": "application/json" },

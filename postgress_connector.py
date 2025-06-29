@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from pyproj import CRS, Proj, transform
 
 from flask import Flask, request, jsonify
+from flask_compress import Compress
 from flask_cors import CORS
 import json
 import psycopg2 # type: ignore
@@ -19,21 +20,42 @@ logger = logging.getLogger(__name__)
 
 
 app = Flask(__name__)
+Compress(app)
 app.config["DEBUG"] = True
 CORS(app)
 
-dbconn = {'database': os.getenv("db"),
-          'user': os.getenv("db_user"),
-          'host': os.getenv("db_host"),
-          'password': os.getenv("db_password"),
-          'port': os.getenv("db_port")}
+# Health check endpoint
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({'status': 'ok', 'message': 'Flask app is running'}), 200
 
+# Database connection with retry logic
+def get_db_connection():
+    dbconn = {'database': os.getenv("db"),
+              'user': os.getenv("db_user"),
+              'host': os.getenv("db_host"),
+              'password': os.getenv("db_password"),
+              'port': os.getenv("db_port")}
+    
+    try:
+        conn = psycopg2.connect(**dbconn)
+        return conn
+    except psycopg2.DatabaseError as e:
+        logger.error(f"Database connection error: {e}")
+        logger.error(f"Connection params: {dbconn}")
+        return None
+
+# Initialize database connection
 try:
-    postgress_connector = psycopg2.connect(**dbconn)
-    pg_cur = postgress_connector.cursor()
-except psycopg2.DatabaseError as e:
-    logger.error(f"Database connection error: {e}")
-    raise
+    postgress_connector = get_db_connection()
+    if postgress_connector:
+        pg_cur = postgress_connector.cursor()
+    else:
+        pg_cur = None
+        logger.warning("Database connection failed, some endpoints may not work")
+except Exception as e:
+    logger.error(f"Database initialization error: {e}")
+    pg_cur = None
 
 if __name__ == '__main__':
     app.run("0.0.0.0", port="5000", debug=True)
