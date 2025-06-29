@@ -1,7 +1,6 @@
 import json
 import os
 import logging
-from dotenv import load_dotenv
 from pyproj import CRS, Proj, transform
 
 from flask import Flask, request, jsonify
@@ -10,7 +9,9 @@ from flask_cors import CORS
 import json
 import psycopg2 # type: ignore
 from flask import jsonify # type: ignore
-load_dotenv()
+from dotenv import load_dotenv
+load_dotenv(dotenv_path="/var/www/html2/.env")
+
 wgs84 = CRS('epsg:4326')  # WGS84
 etrs89_utm32n = CRS('epsg:25832')  # ETRS89 / UTM zone 32N
 
