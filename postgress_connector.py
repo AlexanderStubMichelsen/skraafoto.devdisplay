@@ -3,10 +3,11 @@ import os
 import logging
 from pyproj import CRS, Proj, transform
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from flask_compress import Compress
 from flask_cors import CORS
 import json
+import gzip
 import psycopg2 # type: ignore
 from flask import jsonify # type: ignore
 from dotenv import load_dotenv
@@ -264,12 +265,21 @@ def toggle_feature(feature):
             "features": geojson_features
         }
 
-        return jsonify(geojson)
+        # Serialize and compress response
+        geojson_str = json.dumps(geojson)
+        compressed = gzip.compress(geojson_str.encode('utf-8'))
+
+        return Response(
+            compressed,
+            status=200,
+            mimetype='application/json',
+            headers={'Content-Encoding': 'gzip'}
+        )
 
     except Exception as e:
-        app.logger.error(f"Error: {e}")  # Use app.logger for better logging
+        app.logger.error(f"Error: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
-    
+
 @app.route('/')
 def hello_world():
     return "Hello, World!"
