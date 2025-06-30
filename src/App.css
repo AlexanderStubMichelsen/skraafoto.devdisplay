@@ -241,7 +241,7 @@ a:active {
 .geomap {
   margin-top: 20px;
   margin-right:10px;
-  width: 180vh !important;
+  width: 80vh !important;
   height: 70vh !important;
 }
 .map-viewer {

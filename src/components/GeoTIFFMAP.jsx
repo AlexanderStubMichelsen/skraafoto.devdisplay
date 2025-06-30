@@ -79,7 +79,7 @@ const GeoTIFFMap = ({ url, center }) => {
           vectorLayer, // Add vector layer to the map
         ],
         view: new View({
-          zoom: 18, // Adjust zoom level
+          zoom: 16, // Adjust zoom level
           minZoom: 13,
           maxZoom: 18,
           projection: 'EPSG:25832', // Use EPSG:25832 projection
