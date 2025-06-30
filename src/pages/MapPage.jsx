@@ -26,7 +26,7 @@ function MapPage() {
   const mapRef = useRef(null);
   const geoTIFFMapRef = useRef(null);
   const [imagesTif, setImagesTif] = useState({});
-  const [coordinates, setCoordinates] = useState([714774, 6176450]);  // Copenhagen center - should have photos 
+  const [coordinates, setCoordinates] = useState([725533.821587679,6176369.05807838]);  // Copenhagen center - should have photos 
   const [selectedDirection, setSelectedDirection] = useState("north");   //Initial diretion
   const [center, setCenter] = useState(null);
   const [map, setMap] = useState(null);
@@ -334,6 +334,8 @@ useEffect(() => {
             selectedCollection,
             limit
           );
+
+          console.log('coordinates for selected location: ', coordinates);
 
           if (response.features && response.features.length > 0) {
             const feature = response.features[0];

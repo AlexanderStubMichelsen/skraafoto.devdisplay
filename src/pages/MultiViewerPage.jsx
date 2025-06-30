@@ -14,7 +14,7 @@ const limit = 5; // Example limit on the number of items
 function MultiViewerPage() {
   const [images, setImages] = useState({});
   const [imagesTif, setImagesTif] = useState({});
-  const [coordinates, setCoordinates] = useState([728368.05, 6174304.56]);
+  const [coordinates, setCoordinates] = useState([725533.821587679,6176369.05807838]); // Nyhavn, Copenhagen - colorful historic harbor
   const [kote, setKote] = useState(null);
   const [selectedDirection, setSelectedDirection] = useState('north'); // Default to the first direction
   const [center, setCenter] = useState(null); // New state to store the center of the GeoTIFF image
