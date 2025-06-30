@@ -24,7 +24,7 @@ jobs:
           export const configuration = {
             db: 'postgres',
             db_user: 'postgres',
-            db_host: 'https://skraafoto.devdisplay.online',
+            db_host: 'localhost',
             db_password: '${{ secrets.VITE_DB_PASSWORD }}',
             db_port: '5432',
             api_baseurl: 'https://api.dataforsyningen.dk/rest/skraafoto_api/v1.0',
