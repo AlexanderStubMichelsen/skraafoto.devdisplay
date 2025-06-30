@@ -17,10 +17,12 @@ async function updateCenter(coordinate, item, kote) {
       }
   
       const imageCoord = getImageXY(item, coordinate[0], coordinate[1], kote);
-      return {
+      const result = {
         worldCoord: [...coordinate, kote],
         imageCoord: imageCoord
       };
+      
+      return result;
     } catch (error) {
       console.error("Error in updateCenter function:", error);
       return null;
@@ -79,10 +81,8 @@ async function updateCenter(coordinate, item, kote) {
   
       const col = ((x_dot - xx0) + (dimX)) * (-1) / pix;
       const row = ((y_dot - yy0) + (dimY)) * (-1) / pix;
-      return [
-        Math.round(col),
-        Math.round(row)
-      ];
+      
+      return [Math.round(col), Math.round(row)];
     } catch (error) {
       console.error("Error in getImageXY function:", error);
       return [0, 0];  // Return a default value or handle the error accordingly

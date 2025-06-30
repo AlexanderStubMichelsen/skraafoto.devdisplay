@@ -26,7 +26,7 @@ function MapPage() {
   const mapRef = useRef(null);
   const geoTIFFMapRef = useRef(null);
   const [imagesTif, setImagesTif] = useState({});
-  const [coordinates, setCoordinates] = useState([728368.05, 6174304.56]);  //Initial skrafooto on load 
+  const [coordinates, setCoordinates] = useState([714774, 6176450]);  // Copenhagen center - should have photos 
   const [selectedDirection, setSelectedDirection] = useState("north");   //Initial diretion
   const [center, setCenter] = useState(null);
   const [map, setMap] = useState(null);
@@ -347,13 +347,23 @@ useEffect(() => {
               currentSelectedItem = feature;
             }
           } else {
-            setErrorMessage({ message: "Invalid authorization credentials", statusCode: 401})
+            console.log(`No features found for direction: ${direction}`);
             newImagesTif[direction] = null;
             newSTACItems[direction] = null;
           }
         } catch (error) {
           console.error(`Error fetching STAC items for ${direction}:`, error);
-          setErrorMessage({ message: "The API server seems to be down for the moment", statusCode: 503})
+          
+          // Check if it's actually an authentication error (401)
+          if (error.message && (error.message.includes('401') || error.message.includes('Unauthorized'))) {
+            setErrorMessage({ message: "Invalid authorization credentials", statusCode: 401});
+          } else if (error.message && error.message.includes('<!doctype')) {
+            // This means we got an HTML page instead of JSON - likely an API issue
+            console.warn(`API returned HTML instead of JSON for direction: ${direction}`);
+          } else {
+            setErrorMessage({ message: "The API server seems to be down for the moment", statusCode: 503});
+          }
+          
           newImagesTif[direction] = null;
           newSTACItems[direction] = null;
         }
@@ -369,7 +379,7 @@ useEffect(() => {
           configuration.API_DHM_TOKENB,
           coordinates
         );
-
+        
         const result = await updateCenter(coordinates, currentSelectedItem, elevation);
         if (result && result.imageCoord) {
           setCenter(result.imageCoord); // Update center with the image coordinates

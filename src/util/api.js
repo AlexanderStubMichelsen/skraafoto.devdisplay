@@ -71,11 +71,14 @@ async function queryItems(coord, direction, collection, limit = 1) {
     if (collection) {
         search_query.and.push({ "eq": [{ "property": "collection" }, collection] });
     }
+    
+    const queryString = `/search?limit=${limit}&filter=${encodeURI(JSON.stringify(search_query))}&filter-lang=cql-json&filter-crs=http://www.opengis.net/def/crs/EPSG/0/25832&crs=http://www.opengis.net/def/crs/EPSG/0/25832`;
+    
     try {
-        const response = await getSTAC(`/search?limit=${limit}&filter=${encodeURI(JSON.stringify(search_query))}&filter-lang=cql-json&filter-crs=http://www.opengis.net/def/crs/EPSG/0/25832&crs=http://www.opengis.net/def/crs/EPSG/0/25832`, configuration);
+        const response = await getSTAC(queryString, configuration);
         return response;
     } catch (error) {
-        console.error(`Error querying items: ${error}`);
+        console.error(`Error querying items for ${direction}:`, error);
         throw error;
     }
 }
@@ -114,15 +117,16 @@ async function getElevationData(username = configuration.API_DHM_TOKENA, passwor
         const point = `POINT(${coordinates.join(' ')})`;
         const url = `https://services.datafordeler.dk/DHMTerraen/DHMKoter/1.0.0/GEOREST/HentKoter?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&geop=${encodeURIComponent(point)}`;
         const response = await axios.get(url);
-        //console.log('Elevation url:', url);
         if (response.data && response.data.HentKoterRespons && response.data.HentKoterRespons.data.length > 0) {
-            return response.data.HentKoterRespons.data[0].kote;
+            const elevation = response.data.HentKoterRespons.data[0].kote;
+            return elevation;
         } else {
-            throw new Error('No elevation data found.');
+            console.warn('No elevation data found, returning 0');
+            return 0; // Return 0 instead of throwing error
         }
     } catch (error) {
-        console.error('Error fetching elevation data:', error);
-        throw error;
+        console.error('Error fetching elevation data, returning 0:', error.message);
+        return 0; // Return 0 instead of throwing error
     }
 }
 

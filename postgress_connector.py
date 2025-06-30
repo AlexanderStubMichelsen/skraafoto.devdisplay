@@ -11,7 +11,18 @@ import gzip
 import psycopg2 # type: ignore
 from flask import jsonify # type: ignore
 from dotenv import load_dotenv
-load_dotenv(dotenv_path="/var/www/html2/.env")
+import os
+
+# Load environment variables - use different files for development vs production
+if os.path.exists("/var/www/html2/.env"):
+    # Production environment
+    load_dotenv(dotenv_path="/var/www/html2/.env")
+elif os.path.exists(".env.flask"):
+    # Development environment with Flask-specific config
+    load_dotenv(dotenv_path=".env.flask")
+else:
+    # Fallback to default .env
+    load_dotenv()
 
 wgs84 = CRS('epsg:4326')  # WGS84
 etrs89_utm32n = CRS('epsg:25832')  # ETRS89 / UTM zone 32N
@@ -33,11 +44,11 @@ def health_check():
 
 # Database connection with retry logic
 def get_db_connection():
-    dbconn = {'database': os.getenv("db"),
-              'user': os.getenv("db_user"),
-              'host': os.getenv("db_host"),
-              'password': os.getenv("db_password"),
-              'port': os.getenv("db_port")}
+    dbconn = {'database': os.getenv("VITE_DB"),
+              'user': os.getenv("VITE_DB_USER"),
+              'host': os.getenv("VITE_DB_HOST"),
+              'password': os.getenv("VITE_DB_PASSWORD"),
+              'port': os.getenv("VITE_DB_PORT")}
     
     try:
         conn = psycopg2.connect(**dbconn)

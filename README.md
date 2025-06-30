@@ -37,6 +37,8 @@ These are the tokens that are needed
 ### API_DHM_TOKENB  
 - from  https://datafordeler.dk/dataoversigt/danmarks-hoejdemodel-dhm/koter/          (DHM API service password)
 
+**Status**: ✅ Elevation data (koter) is now working with updated DHM credentials!
+
 ## Virtual Environment
 > python -m venv .venv
 

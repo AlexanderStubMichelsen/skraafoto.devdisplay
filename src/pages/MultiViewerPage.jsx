@@ -85,7 +85,8 @@ function MultiViewerPage() {
         );
         setKote(elevation);
 
-        const result = await updateCenter(coordinates, selectedItem, kote);
+        // Use the freshly fetched elevation value, not the state value
+        const result = await updateCenter(coordinates, selectedItem, elevation);
         if (result && result.imageCoord) {
           setCenter(result.imageCoord); // Update center with the image coordinates
         }

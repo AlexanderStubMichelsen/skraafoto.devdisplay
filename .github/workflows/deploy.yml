@@ -31,7 +31,13 @@ jobs:
             api_token: '${{ secrets.VITE_API_TOKEN }}',
             api_dhm_tokena: '${{ secrets.VITE_API_DHM_TOKENA }}',
             api_dhm_tokenb: '${{ secrets.VITE_API_DHM_TOKENB }}',
-            api_base_url: 'https://skraafoto.devdisplay.online'
+            api_base_url: 'https://skraafoto.devdisplay.online',
+            // Properties that SAUL library expects
+            API_STAC_BASEURL: 'https://api.dataforsyningen.dk/rest/skraafoto_api/v1.0',
+            API_STAC_TOKEN: '${{ secrets.VITE_API_TOKEN }}',
+            API_DHM_BASEURL: 'https://services.datafordeler.dk/DHMTerraen/DHMKoter/1.0.0/GEOREST/',
+            API_DHM_TOKENA: '${{ secrets.VITE_API_DHM_TOKENA }}',
+            API_DHM_TOKENB: '${{ secrets.VITE_API_DHM_TOKENB }}'
           }
           EOF
 
