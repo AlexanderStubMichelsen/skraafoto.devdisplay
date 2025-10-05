@@ -82,7 +82,7 @@ jobs:
           username: root
           key: ${{ secrets.DEPLOY_KEY }}
           source: "deploy/*"
-          target: "/var/www/html2"
+          target: "/var/www/skraafoto"
           strip_components: 1
 
       - name: Restart Apache
