@@ -14,9 +14,9 @@ from dotenv import load_dotenv
 import os
 
 # Load environment variables - use different files for development vs production
-if os.path.exists("/var/www/html2/.env"):
+if os.path.exists("/var/www/skraafoto/.env"):
     # Production environment
-    load_dotenv(dotenv_path="/var/www/html2/.env")
+    load_dotenv(dotenv_path="/var/www/skraafoto/.env")
 elif os.path.exists(".env.flask"):
     # Development environment with Flask-specific config
     load_dotenv(dotenv_path=".env.flask")
