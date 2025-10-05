@@ -1,17 +1,15 @@
 import json
 import os
 import logging
+from pathlib import Path
 from pyproj import CRS, Proj, transform
 
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, send_from_directory
 from flask_compress import Compress
 from flask_cors import CORS
-import json
 import gzip
 import psycopg2 # type: ignore
-from flask import jsonify # type: ignore
 from dotenv import load_dotenv
-import os
 
 # Load environment variables - use different files for development vs production
 if os.path.exists("/var/www/skraafoto/.env"):
@@ -32,7 +30,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="dist", static_url_path="")
 Compress(app)
 app.config["DEBUG"] = True
 CORS(app)
@@ -291,7 +289,14 @@ def toggle_feature(feature):
         app.logger.error(f"Error: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-@app.route('/')
-def hello_world():
-    return "Hello, World!"
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_react_app(path):
+    static_folder = Path(app.static_folder or "dist")
+    requested_path = static_folder / path
+
+    if path and requested_path.is_file():
+        return send_from_directory(app.static_folder, path)
+
+    return send_from_directory(app.static_folder, 'index.html')
 
