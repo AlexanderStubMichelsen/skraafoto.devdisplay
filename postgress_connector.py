@@ -57,14 +57,21 @@ def _resolve_default_gpkg_path() -> Optional[Path]:
 
 PLAN_GPKG_FILE = _resolve_default_gpkg_path()
 
+# ✅ If the GeoPackage is not deployed with the app (too large for free plan),
+# download it from GitHub LFS the first time the app starts.
 if not PLAN_GPKG_FILE.exists():
-    raise FileNotFoundError(f"GeoPackage file not found: {PLAN_GPKG_FILE}")
+    import requests
+    GPKG_URL = "https://github.com/AlexanderStubMichelsen/skraafoto.devdisplay/raw/Azure-SQLite-GeoPackage/plandata.gpkg"
+    logger.info("📦 GeoPackage not found locally, downloading from GitHub LFS...")
+    resp = requests.get(GPKG_URL)
+    resp.raise_for_status()
+    PLAN_GPKG_FILE.write_bytes(resp.content)
+    logger.info(f"✅ Downloaded GeoPackage to {PLAN_GPKG_FILE}")
 
 if gpd is None:
     raise ImportError("GeoPandas is required for GeoPackage mode")
 
 logger.info("✅ Using local GeoPackage: %s", PLAN_GPKG_FILE)
-
 
 # ───────────────────────────────
 # Flask app setup
