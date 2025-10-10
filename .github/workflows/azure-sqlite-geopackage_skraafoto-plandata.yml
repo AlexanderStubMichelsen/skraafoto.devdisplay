@@ -30,7 +30,7 @@ jobs:
       - name: Set up Python version
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       # ✅ Install dependencies (build check)
       - name: Install dependencies
@@ -73,9 +73,14 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_DD74700945D346EBB597564674EA99FB }}
 
       # ✅ Deploy to your Azure Web App
-      - name: Deploy to Azure Web App
+      - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
           app-name: 'skraafoto-plandata'
           slot-name: 'Production'
+          package: .
+          clean: true
+          type: zip
+
+
