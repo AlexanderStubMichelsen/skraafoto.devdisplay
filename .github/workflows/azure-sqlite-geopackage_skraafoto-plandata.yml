@@ -13,26 +13,26 @@ jobs:
       contents: read
 
     steps:
-      # ✅ Checkout source code and include LFS files
+      # ✅ Checkout repository and include Git LFS files (for your GeoPackage)
       - uses: actions/checkout@v4
         with:
           lfs: true
           fetch-depth: 0
 
-      # ✅ Ensure Git LFS files (like .gpkg) are downloaded
+      # ✅ Ensure LFS data (like .gpkg) is pulled down
       - name: Pull LFS files
         run: |
           git lfs install
           git lfs pull
-          ls -lh plandata.gpkg || echo "GeoPackage not found!"
+          ls -lh plandata.gpkg || echo "⚠️ GeoPackage not found"
 
-      # ✅ Setup Python
-      - name: Set up Python version
+      # ✅ Set up Python
+      - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      # ✅ Install dependencies (build check)
+      # ✅ Install dependencies
       - name: Install dependencies
         run: |
           python -m venv antenv
@@ -40,17 +40,17 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      # ✅ Upload artifacts (skips virtualenv)
-      - name: Upload artifact for deployment jobs
+      # ✅ Prepare ZIP for Azure (avoids “EISDIR” & OneDeploy conflict)
+      - name: Create deployment ZIP
+        run: |
+          zip -r deploy.zip . -x "antenv/*" ".git/*" ".github/*" "__pycache__/*"
+
+      # ✅ Upload ZIP as artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: |
-            .
-            !antenv/
-            !.git/
-            !.github/
-            !__pycache__/
+          path: deploy.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -60,7 +60,7 @@ jobs:
       contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: python-app
@@ -72,15 +72,11 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_25BA7C8F94024606B904893E1FB72324 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_DD74700945D346EBB597564674EA99FB }}
 
-      # ✅ Deploy to your Azure Web App
-      - name: 'Deploy to Azure Web App'
+      # ✅ Deploy ZIP package to your Flask app
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
-        id: deploy-to-webapp
         with:
-          app-name: 'skraafoto-plandata'
-          slot-name: 'Production'
-          package: .
-          clean: true
+          app-name: "skraafoto-plandata"
+          package: deploy.zip
           type: zip
-
-
+          clean: true
