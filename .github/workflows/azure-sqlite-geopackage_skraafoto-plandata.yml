@@ -32,20 +32,19 @@ jobs:
         with:
           python-version: "3.10"
 
-      # ✅ Install dependencies
-      - name: Install dependencies
+      # ✅ Install dependencies directly into app directory (so Azure runtime finds them)
+      - name: Install dependencies into app directory
         run: |
-          python -m venv antenv
-          source antenv/bin/activate
           pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r requirements.txt --target="./"
+          ls -lh | grep pyproj || echo "pyproj not found"
 
-      # ✅ Prepare ZIP for Azure (avoids “EISDIR” & OneDeploy conflict)
+      # ✅ Package everything for Azure deployment
       - name: Create deployment ZIP
         run: |
-          zip -r deploy.zip . -x "antenv/*" ".git/*" ".github/*" "__pycache__/*"
+          zip -r deploy.zip . -x ".git/*" ".github/*" "__pycache__/*" "antenv/*"
 
-      # ✅ Upload ZIP as artifact
+      # ✅ Upload ZIP artifact
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
