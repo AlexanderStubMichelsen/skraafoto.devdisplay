@@ -1,9 +1,12 @@
-name: Deploy Flask + React to Linux Server
+name: Deploy Flask + React to Azure Web App
 
 on:
   push:
     branches:
       - master
+
+env:
+  AZURE_WEBAPP_NAME: skraafoto-devdisplay
 
 jobs:
   build-and-deploy:
@@ -75,21 +78,18 @@ jobs:
           echo "📁 Final deploy folder contents:"
           ls -alh deploy/
 
-      - name: Deploy via SCP
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: 172.105.95.18
-          username: root
-          key: ${{ secrets.DEPLOY_KEY }}
-          source: "deploy/*"
-          target: "/var/www/skraafoto"
-          strip_components: 1
+      - name: Archive deployment package
+        run: |
+          cd deploy
+          zip -r ../deploy.zip .
 
-      - name: Restart Apache
-        uses: appleboy/ssh-action@master
+      - name: Login to Azure
+        uses: azure/login@v2
         with:
-          host: 172.105.95.18
-          username: root
-          key: ${{ secrets.DEPLOY_KEY }}
-          script: |
-            sudo systemctl restart apache2
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: deploy.zip
