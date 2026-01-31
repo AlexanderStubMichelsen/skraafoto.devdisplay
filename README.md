@@ -68,3 +68,4 @@ To attach to the session it, write:
 > screen -r skraafoto
 
 To detach press ctrl + A, then D 
+
