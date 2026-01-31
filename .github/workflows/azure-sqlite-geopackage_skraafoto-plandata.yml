@@ -68,9 +68,18 @@ jobs:
           npm run build
 
       # ✅ Package everything for Azure deployment
-      - name: Create deployment ZIP
+      - name: Sanity-check deployment artifacts
         run: |
-          zip -r deploy.zip . -x ".git/*" ".github/*" "__pycache__/*" "antenv/*"
+          echo "Dist contents:"
+          ls -alh dist || echo "dist/ not found"
+          echo "Config file:"
+          ls -alh src/util/configuration.js || echo "configuration.js not found"
+          echo "Repo size:"
+          du -sh . || true
+
+      - name: Create deployment ZIP (excluding node_modules)
+        run: |
+          zip -r deploy.zip . -x ".git/*" ".github/*" "__pycache__/*" "antenv/*" "node_modules/*" "node_modules/**"
 
       # ✅ Upload ZIP artifact
       - name: Upload artifact
