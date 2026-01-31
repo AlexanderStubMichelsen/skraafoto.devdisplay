@@ -64,7 +64,7 @@ jobs:
       - name: Install and build frontend
         working-directory: ./
         run: |
-          npm ci
+          npm install --no-audit --no-fund
           npm run build
 
       # ✅ Package everything for Azure deployment
