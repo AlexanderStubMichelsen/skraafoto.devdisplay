@@ -39,6 +39,20 @@ jobs:
           pip install -r requirements.txt --target="./"
           ls -lh | grep pyproj || echo "pyproj not found"
 
+      # ✅ Create frontend configuration from GitHub Secrets (so tokens are injected at build time)
+      - name: Create frontend configuration file
+        run: |
+          mkdir -p src/util
+          cat > src/util/configuration.js << 'EOF'
+          export const configuration = {
+            API_STAC_BASEURL: 'https://api.dataforsyningen.dk/rest/skraafoto_api/v1.0',
+            API_STAC_TOKEN: '${{ secrets.VITE_API_TOKEN }}',
+            API_DHM_BASEURL: 'https://services.datafordeler.dk/DHMTerraen/DHMKoter/1.0.0/GEOREST/',
+            API_DHM_TOKENA: '${{ secrets.VITE_API_DHM_TOKENA }}',
+            API_DHM_TOKENB: '${{ secrets.VITE_API_DHM_TOKENB }}'
+          }
+          EOF
+
       # ✅ Package everything for Azure deployment
       - name: Create deployment ZIP
         run: |
