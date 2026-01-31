@@ -176,19 +176,23 @@ a:active {
   margin-top: 10px;
   display: flex;
   flex-direction: row;
+  align-items: stretch; /* ensure children stretch to same height */
+  gap: 16px; /* spacing between viewer and thumbnails */
 }
 
 .high-quality-viewer {
   margin-top: 20px;
   width: 100%;
-  height: 100%;
-
+  /* Give the viewer a viewport-based height so the inner map can be 100% tall */
+  height: 70vh;
+  min-height: 360px; /* fall back for very small screens */
   display: block;
+  margin-bottom: 20px;
 }
 
 .thumbnails {
   width: 100%;
-  height: 100%;
+  height: auto;
   display: grid;
   grid-template-columns: repeat(2, auto); /* 2 columns */
 }
