@@ -45,6 +45,8 @@ jobs:
           mkdir -p src/util
           cat > src/util/configuration.js << 'EOF'
           export const configuration = {
+            // app expects both api_base_url and API_STAC_TOKEN in the bundle
+            api_base_url: 'https://skraafoto-plandata-ckardphtehdjc5ar.westeurope-01.azurewebsites.net',
             API_STAC_BASEURL: 'https://api.dataforsyningen.dk/rest/skraafoto_api/v1.0',
             API_STAC_TOKEN: '${{ secrets.VITE_API_TOKEN }}',
             API_DHM_BASEURL: 'https://services.datafordeler.dk/DHMTerraen/DHMKoter/1.0.0/GEOREST/',
@@ -52,6 +54,18 @@ jobs:
             API_DHM_TOKENB: '${{ secrets.VITE_API_DHM_TOKENB }}'
           }
           EOF
+
+      # ✅ Build frontend so configuration is bundled into dist
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install and build frontend
+        working-directory: ./
+        run: |
+          npm ci
+          npm run build
 
       # ✅ Package everything for Azure deployment
       - name: Create deployment ZIP
