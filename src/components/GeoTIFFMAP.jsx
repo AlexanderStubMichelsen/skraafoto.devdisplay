@@ -11,6 +11,7 @@ import GeoTIFF from 'ol/source/GeoTIFF';
 import 'ol/ol.css'; // Import OpenLayers CSS
 import proj4 from 'proj4';
 import { register } from 'ol/proj/proj4';
+import markerIcon from '../assets/marker.svg';
 
 // Define and register the EPSG:25832 projection
 proj4.defs('EPSG:25832', '+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs');
@@ -99,7 +100,7 @@ const GeoTIFFMap = ({ url, center }) => {
 
         markerFeature.setStyle(new Style({
           image: new Icon({
-            src: 'src/assets/marker.svg', // Path to the marker image
+            src: markerIcon, // Path to the marker image
             scale: 0.05, // Adjust size of the marker
             opacity: 0.75,
           }),

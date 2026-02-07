@@ -16,6 +16,8 @@ import "../App.css";
 import { configuration } from "../util/configuration.js";
 import { imgsFromPolygon } from "../util/api.js";
 import { getArea } from "ol/sphere";
+import polygonIcon from "../assets/polygon.svg";
+import downloadIcon from "../assets/download.svg";
 
 const directions = ["north", "south", "east", "west", "nadir"];
 const limit = 5;
@@ -483,7 +485,7 @@ const printPolygons = async () => {
   
           <button className="tool-btn" onClick={toggleDrawingMode}>
             {drawingMode ? "Stop Drawing" : "Draw Polygon"}
-            <img src="src/assets/polygon.svg" className="btnSvg btnP" alt="Polygon Icon" />
+            <img src={polygonIcon} className="btnSvg btnP" alt="Polygon Icon" />
           </button>
           
           {drawingMode && (
@@ -503,7 +505,7 @@ const printPolygons = async () => {
   
           <button className="tool-btn" onClick={downloadGeoTIFF}>
             {"Download "}
-            <img src="src/assets/download.svg" className="btnSvg btnD" alt="Download Icon" />
+            <img src={downloadIcon} className="btnSvg btnD" alt="Download Icon" />
           </button>
         </div>
       </div>
