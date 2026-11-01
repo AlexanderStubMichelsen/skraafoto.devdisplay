@@ -101,21 +101,15 @@ function getCollections() {
 
 
 /**
- * DHM/Danmarks Højdemodel is a terrainmodel of Denmark, that gives us access to elevation data at specific coordinates
- * If you have a user account, you can access the data through the API
- * A user account can be created at https://datafordeler.dk/ and by adding a service/tjenestebruger,
- * which username and password will be your API_DHM_TOKENA and API_DHM_TOKENB in the configuration file.
- /** 
- * Fetches elevation data from DHM Terraen
- * @param {string} [username] - API username (default from configuration)
- * @param {string} [password] - API password (default from configuration)
- * @param {Array<number>} coordinates - Array containing [longitude, latitude] in UTM (EPSG:25832)
+ * Fetches elevation data from DHM Terraen (Danmarks Højdemodel) via the backend proxy,
+ * which adds the Datafordeler service-user credentials (DHM_USERNAME / DHM_PASSWORD).
+ * @param {Array<number>} coordinates - Array containing [x, y] in UTM (EPSG:25832)
  * @returns {Promise<number>} Elevation (kote) value
  */
-async function getElevationData(username = configuration.API_DHM_TOKENA, password = configuration.API_DHM_TOKENB, coordinates) {
+async function getElevationData(coordinates) {
     try {
         const point = `POINT(${coordinates.join(' ')})`;
-        const url = `https://services.datafordeler.dk/DHMTerraen/DHMKoter/1.0.0/GEOREST/HentKoter?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&geop=${encodeURIComponent(point)}`;
+        const url = `${configuration.API_DHM_BASEURL}?geop=${encodeURIComponent(point)}`;
         const response = await axios.get(url);
         if (response.data && response.data.HentKoterRespons && response.data.HentKoterRespons.data.length > 0) {
             const elevation = response.data.HentKoterRespons.data[0].kote;
@@ -146,16 +140,10 @@ function getTerrainData(item) {
 
 const imgsFromPolygon = async (polygon) => {
     const polygonString = JSON.stringify(polygon);
-    const url = `https://api.dataforsyningen.dk/adgangsadresser?polygon=${polygonString}&srid=25832&struktur=mini`
+    const url = `${configuration.ADGANGSADRESSER_URL}?polygon=${encodeURIComponent(polygonString)}&srid=25832&struktur=mini`
     //struktur=mini for less data, more effecient
     try{
-        const response = await fetch(url, {
-            method:'GET',
-            headers: {
-                "token": configuration.API_STAC_TOKEN, 
-                'Content-Type': 'application/json',
-            }
-        })
+        const response = await fetch(url)
         if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
         }

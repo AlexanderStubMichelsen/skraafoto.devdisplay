@@ -134,8 +134,8 @@ buildNumber.properties
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 
-# skraafoto config file
-src/util/configuration.js
+# local backend secrets
+.env.flask
 
 # npm
 package-lock.json

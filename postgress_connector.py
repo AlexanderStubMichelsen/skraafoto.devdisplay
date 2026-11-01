@@ -6,8 +6,11 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, Iterable, Optional
 
+from urllib.parse import urlencode, urlsplit, urlunsplit, parse_qsl, quote
+
+import requests
 from pyproj import CRS
-from flask import Flask, jsonify, send_from_directory, request
+from flask import Flask, Response, jsonify, send_from_directory, request
 from flask_cors import CORS
 from dotenv import load_dotenv
 
@@ -31,6 +34,11 @@ elif os.path.exists(".env.flask"):
     load_dotenv(dotenv_path=".env.flask")
 else:
     load_dotenv()
+
+# API credentials live only on the server. The deploy workflow writes them to
+# /etc/skraafoto/secrets.env (outside the web root); locally, use .env.flask.
+if os.path.exists("/etc/skraafoto/secrets.env"):
+    load_dotenv(dotenv_path="/etc/skraafoto/secrets.env", override=True)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -60,7 +68,6 @@ PLAN_GPKG_FILE = _resolve_default_gpkg_path()
 # ✅ If the GeoPackage is not deployed with the app (too large for free plan),
 # download it from GitHub LFS the first time the app starts.
 if not PLAN_GPKG_FILE.exists():
-    import requests
     GPKG_URL = "https://github.com/AlexanderStubMichelsen/skraafoto.devdisplay/raw/Azure-SQLite-GeoPackage/plandata.gpkg"
     logger.info("📦 GeoPackage not found locally, downloading from GitHub LFS...")
     resp = requests.get(GPKG_URL)
@@ -201,6 +208,143 @@ def get_plandata(address: str):
     except Exception as e:
         logger.error(f"Error reading from GeoPackage: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ───────────────────────────────
+# API proxy: keeps Dataforsyningen/Datafordeler credentials server-side
+# ───────────────────────────────
+DF_TOKEN = os.getenv("DATAFORSYNINGEN_TOKEN") or os.getenv("VITE_API_TOKEN") or ""
+DHM_USERNAME = os.getenv("DHM_USERNAME") or os.getenv("VITE_API_DHM_TOKENA") or ""
+DHM_PASSWORD = os.getenv("DHM_PASSWORD") or os.getenv("VITE_API_DHM_TOKENB") or ""
+
+STAC_BASE = "https://api.dataforsyningen.dk/rest/skraafoto_api/v1.0"
+GSEARCH_BASE = "https://api.dataforsyningen.dk/rest/gsearch/v2.0"
+ADGANGSADRESSER_URL = "https://api.dataforsyningen.dk/adgangsadresser"
+DHM_KOTER_URL = "https://services.datafordeler.dk/DHMTerraen/DHMKoter/1.0.0/GEOREST/HentKoter"
+DHM_WCS_URL = "https://services.datafordeler.dk/DHMNedboer/dhm_wcs/1.0.0/WCS"
+
+# Only these hosts may be fetched through /api/proxy/file (prevents an open proxy).
+FILE_PROXY_HOSTS = {"api.dataforsyningen.dk", "cdn.dataforsyningen.dk"}
+_CREDENTIAL_PARAMS = {"token", "username", "password"}
+_PASSTHROUGH_HEADERS = ("Content-Type", "Content-Length", "Content-Range",
+                        "Accept-Ranges", "Cache-Control", "ETag", "Last-Modified")
+_TIMEOUT = 30
+
+if not DF_TOKEN:
+    logger.warning("DATAFORSYNINGEN_TOKEN is not set; skraafoto API calls will fail")
+if not (DHM_USERNAME and DHM_PASSWORD):
+    logger.warning("DHM_USERNAME/DHM_PASSWORD are not set; elevation calls will fail")
+
+
+def _client_params() -> list:
+    """Query params from the browser, minus any credential fields."""
+    return [(k, v) for k, v in request.args.items(multi=True)
+            if k.lower() not in _CREDENTIAL_PARAMS]
+
+
+def _strip_credentials(url: str) -> str:
+    parts = urlsplit(url)
+    query = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True)
+             if k.lower() not in _CREDENTIAL_PARAMS]
+    return urlunsplit(parts._replace(query=urlencode(query)))
+
+
+def _proxy_base() -> str:
+    # Relative on purpose: behind Apache/Azure TLS termination request.host_url would be
+    # http://, which browsers block as mixed content on the https:// site.
+    return "/api/proxy"
+
+
+def _rewrite_hrefs(obj, proxy_base: str):
+    """Point STAC links at this proxy and strip any token Dataforsyningen echoes back."""
+    if isinstance(obj, dict):
+        out = {}
+        for k, v in obj.items():
+            if k == "href" and isinstance(v, str):
+                clean = _strip_credentials(v)
+                if clean.startswith(STAC_BASE):
+                    out[k] = proxy_base + "/stac" + clean[len(STAC_BASE):]
+                elif urlsplit(clean).hostname in FILE_PROXY_HOSTS:
+                    out[k] = proxy_base + "/file?url=" + quote(clean, safe="")
+                else:
+                    out[k] = clean
+            else:
+                out[k] = _rewrite_hrefs(v, proxy_base)
+        return out
+    if isinstance(obj, list):
+        return [_rewrite_hrefs(v, proxy_base) for v in obj]
+    return obj
+
+
+def _relay(upstream: requests.Response) -> Response:
+    # requests has already decompressed the body, so let Flask compute Content-Length.
+    headers = {h: upstream.headers[h] for h in _PASSTHROUGH_HEADERS
+               if h in upstream.headers and h != "Content-Length"}
+    return Response(upstream.content, status=upstream.status_code, headers=headers)
+
+
+def _json_relay(upstream: requests.Response) -> Response:
+    """Relay a JSON response with hrefs rewritten; fall back to raw relay for non-JSON."""
+    try:
+        data = upstream.json()
+    except ValueError:
+        return _relay(upstream)
+    return jsonify(_rewrite_hrefs(data, _proxy_base())), upstream.status_code
+
+
+@app.route("/api/proxy/stac", defaults={"subpath": ""}, methods=["GET"])
+@app.route("/api/proxy/stac/<path:subpath>", methods=["GET"])
+def proxy_stac(subpath: str):
+    url = f"{STAC_BASE}/{subpath}" if subpath else STAC_BASE
+    upstream = requests.get(url, params=_client_params() + [("token", DF_TOKEN)], timeout=_TIMEOUT)
+    return _json_relay(upstream)
+
+
+@app.route("/api/proxy/gsearch/<path:subpath>", methods=["GET"])
+def proxy_gsearch(subpath: str):
+    upstream = requests.get(f"{GSEARCH_BASE}/{subpath}", params=_client_params(),
+                            headers={"token": DF_TOKEN}, timeout=_TIMEOUT)
+    return _relay(upstream)
+
+
+@app.route("/api/proxy/adgangsadresser", methods=["GET"])
+def proxy_adgangsadresser():
+    upstream = requests.get(ADGANGSADRESSER_URL, params=_client_params(),
+                            headers={"token": DF_TOKEN}, timeout=_TIMEOUT)
+    return _relay(upstream)
+
+
+@app.route("/api/proxy/dhm/koter", methods=["GET"])
+def proxy_dhm_koter():
+    params = _client_params() + [("username", DHM_USERNAME), ("password", DHM_PASSWORD)]
+    return _relay(requests.get(DHM_KOTER_URL, params=params, timeout=_TIMEOUT))
+
+
+@app.route("/api/proxy/dhm/wcs", methods=["GET"])
+def proxy_dhm_wcs():
+    params = _client_params() + [("username", DHM_USERNAME), ("password", DHM_PASSWORD)]
+    return _relay(requests.get(DHM_WCS_URL, params=params, timeout=_TIMEOUT))
+
+
+@app.route("/api/proxy/file", methods=["GET", "HEAD"])
+def proxy_file():
+    """Stream an image (COG) from Dataforsyningen, passing Range through for tiled reads."""
+    target = request.args.get("url", "")
+    parts = urlsplit(target)
+    if parts.scheme != "https" or parts.hostname not in FILE_PROXY_HOSTS:
+        return jsonify({"status": "error", "message": "URL not allowed"}), 400
+
+    query = parse_qsl(parts.query, keep_blank_values=True) + [("token", DF_TOKEN)]
+    url = urlunsplit(parts._replace(query=urlencode(query)))
+    # identity encoding keeps Content-Length/Content-Range byte-accurate for range reads
+    headers = {"Accept-Encoding": "identity"}
+    if "Range" in request.headers:
+        headers["Range"] = request.headers["Range"]
+
+    upstream = requests.request(request.method, url, headers=headers, stream=True, timeout=_TIMEOUT)
+    out_headers = {h: upstream.headers[h] for h in _PASSTHROUGH_HEADERS if h in upstream.headers}
+    body = upstream.iter_content(chunk_size=64 * 1024) if request.method == "GET" else b""
+    return Response(body, status=upstream.status_code, headers=out_headers, direct_passthrough=True)
 
 
 # ───────────────────────────────

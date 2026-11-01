@@ -5,12 +5,8 @@ import { configuration } from './configuration.js'
  * @param {number[]} bbox 4 numbers that sets the bounding box for the search
  */
 const findImgLinksInBox = async (bbox) => {
-    const url = `https://api.dataforsyningen.dk/rest/skraafoto_api/v1.0/search?bbox=${bbox[0]},${bbox[1]},${bbox[2]},${bbox[3]}`
-    const response = await fetch(url, {
-        headers: {
-            "token": configuration.API_STAC_TOKEN,
-        }
-    })
+    const url = `${configuration.API_STAC_BASEURL}/search?bbox=${bbox[0]},${bbox[1]},${bbox[2]},${bbox[3]}`
+    const response = await fetch(url)
 
     const itr = getNextSet(await response.json())
     const elemntsOfBox = []
@@ -26,11 +22,8 @@ async function* getNextSet(first) {
     let isFinal = false
     do {
         if (next.links.length < 2) return //todo: maybe throw an error
-        const nextResponse = await fetch(next.links[1].href, {
-            headers: {
-                "token": configuration.API_STAC_TOKEN,
-            }
-        })
+        // Paging links are rewritten by the backend to point at its proxy
+        const nextResponse = await fetch(next.links[1].href)
         const current = next
         next = await nextResponse.json()
         yield current.features

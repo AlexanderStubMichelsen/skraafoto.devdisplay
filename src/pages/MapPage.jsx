@@ -378,11 +378,7 @@ useEffect(() => {
 
       // Fetch elevation data and update center
       if (currentSelectedItem) {
-        const elevation = await getElevationData(
-          configuration.API_DHM_TOKENA,
-          configuration.API_DHM_TOKENB,
-          coordinates
-        );
+        const elevation = await getElevationData(coordinates);
         
         const result = await updateCenter(coordinates, currentSelectedItem, elevation);
         if (result && result.imageCoord) {

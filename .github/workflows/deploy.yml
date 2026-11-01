@@ -18,29 +18,8 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Create configuration file
-        run: |
-          cat > src/util/configuration.js << 'EOF'
-          export const configuration = {
-            db: 'postgres',
-            db_user: 'postgres',
-            db_host: 'localhost',
-            db_password: '${{ secrets.VITE_DB_PASSWORD }}',
-            db_port: '5432',
-            api_baseurl: 'https://api.dataforsyningen.dk/rest/skraafoto_api/v1.0',
-            api_token: '${{ secrets.VITE_API_TOKEN }}',
-            api_dhm_tokena: '${{ secrets.VITE_API_DHM_TOKENA }}',
-            api_dhm_tokenb: '${{ secrets.VITE_API_DHM_TOKENB }}',
-            api_base_url: 'https://skraafoto.devdisplay.online',
-            // Properties that SAUL library expects
-            API_STAC_BASEURL: 'https://api.dataforsyningen.dk/rest/skraafoto_api/v1.0',
-            API_STAC_TOKEN: '${{ secrets.VITE_API_TOKEN }}',
-            API_DHM_BASEURL: 'https://services.datafordeler.dk/DHMTerraen/DHMKoter/1.0.0/GEOREST/',
-            API_DHM_TOKENA: '${{ secrets.VITE_API_DHM_TOKENA }}',
-            API_DHM_TOKENB: '${{ secrets.VITE_API_DHM_TOKENB }}'
-          }
-          EOF
-
+      # No secrets in the frontend build: src/util/configuration.js is committed and
+      # points at the Flask proxy, which holds the credentials server-side.
       - name: Build React frontend
         run: |
           npm install
@@ -85,11 +64,30 @@ jobs:
           target: "/var/www/skraafoto"
           strip_components: 1
 
-      - name: Restart Apache
+      - name: Write backend secrets and restart Apache
         uses: appleboy/ssh-action@master
         with:
           host: 172.105.95.18
           username: root
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
+            set -e
+            # Kept outside the web root so Apache can never serve it
+            mkdir -p /etc/skraafoto
+            umask 077
+            cat > /etc/skraafoto/secrets.env << 'EOF'
+            DATAFORSYNINGEN_TOKEN=${{ secrets.VITE_API_TOKEN }}
+            DHM_USERNAME=${{ secrets.VITE_API_DHM_TOKENA }}
+            DHM_PASSWORD=${{ secrets.VITE_API_DHM_TOKENB }}
+            EOF
+            sed -i 's/^[[:space:]]*//' /etc/skraafoto/secrets.env
+            # Let the Apache (mod_wsgi) user read it
+            if getent group www-data > /dev/null; then
+              chown root:www-data /etc/skraafoto /etc/skraafoto/secrets.env
+              chmod 750 /etc/skraafoto
+              chmod 640 /etc/skraafoto/secrets.env
+            else
+              chmod 755 /etc/skraafoto
+              chmod 644 /etc/skraafoto/secrets.env
+            fi
             sudo systemctl restart apache2

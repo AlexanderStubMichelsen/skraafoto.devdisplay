@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { queryItems, getElevationData } from '../util/api.js';
 import MultiViewer from '../components/MultiViewer.jsx';
-import { configuration } from '../util/configuration.js';
 import { updateCenter } from '../util/centerImage.js';
 import GeoTIFFMAP from '../components/GeoTIFFMAP.jsx'; 
 import AddressSearch from '../components/AddressSearch.jsx';
@@ -78,11 +77,7 @@ function MultiViewerPage() {
       if (!coordinates || !selectedItem) return;
 
       try {
-        const elevation = await getElevationData(
-          configuration.API_DHM_TOKENA,
-          configuration.API_DHM_TOKENB,
-          coordinates
-        );
+        const elevation = await getElevationData(coordinates);
         setKote(elevation);
 
         // Use the freshly fetched elevation value, not the state value

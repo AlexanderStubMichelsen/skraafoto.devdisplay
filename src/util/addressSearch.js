@@ -3,13 +3,9 @@ import { configuration } from './configuration.js'
 const addressToCoords = async (address) => {
   try {
     const query = `${address.road} ${address.housenumber} ${address.postalcode}`;
-    const url = `https://api.dataforsyningen.dk/rest/gsearch/v2.0/husnummer?q=${encodeURIComponent(query)}&limit=99&srid=25832`;
-    
-    const response = await fetch(url, {
-      headers: {
-        "token": configuration.API_STAC_TOKEN,
-      }
-    });
+    const url = `${configuration.GSEARCH_BASEURL}/husnummer?q=${encodeURIComponent(query)}&limit=99&srid=25832`;
+
+    const response = await fetch(url);
     
     const houses = await response.json();
 
@@ -46,12 +42,8 @@ const addressToCoords = async (address) => {
 
 // Function to get address suggestions based on the input
 const addressAutocomplete = async (input) => {
-  const url = `https://api.dataforsyningen.dk/rest/gsearch/v2.0/husnummer?q=${input}&limit=100&srid=25832`;
-  const response = await fetch(url, {
-    headers: {
-      "token": configuration.API_STAC_TOKEN,
-    }
-  });
+  const url = `${configuration.GSEARCH_BASEURL}/husnummer?q=${encodeURIComponent(input)}&limit=100&srid=25832`;
+  const response = await fetch(url);
   
   const rawAddress = await response.json();
 
