@@ -1,0 +1,13 @@
+# Runtime dependencies for the Flask backend on the server (Ubuntu 24.04 / Python 3.12).
+# requirements.txt also holds dev/test and the old Postgres driver; this file is what deploys.
+Flask==3.0.3
+Flask-Cors==5.0.0
+python-dotenv==1.0.1
+requests==2.32.3
+pyproj==3.6.1
+numpy==1.26.4
+pandas==2.2.2
+shapely==2.0.4
+pyogrio==0.10.0
+geopandas==1.0.1
+gunicorn==23.0.0

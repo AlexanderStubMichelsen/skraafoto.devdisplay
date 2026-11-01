@@ -1,0 +1,76 @@
+name: Deploy skraafoto to server
+
+on:
+  push:
+    branches: [server]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-skraafoto
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true   # plandata.gpkg is stored in Git LFS
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # src/util/configuration.js is committed and contains no secrets;
+      # credentials are only ever written to the server below.
+      - name: Build frontend
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+
+      - name: Assemble release
+        run: |
+          mkdir -p release
+          cp -r dist release/dist
+          cp postgress_connector.py requirements-server.txt release/
+          cp plandata.gpkg release/
+          ls -lh release release/dist
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.SERVER_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Upload release
+        run: |
+          rsync -az --delete --exclude venv \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            release/ "deploy@${{ secrets.SERVER_HOST }}:/opt/skraafoto/app/"
+
+      - name: Write secrets, install dependencies, restart
+        env:
+          DATAFORSYNINGEN_TOKEN: ${{ secrets.VITE_API_TOKEN }}
+          DHM_USERNAME: ${{ secrets.VITE_API_DHM_TOKENA }}
+          DHM_PASSWORD: ${{ secrets.VITE_API_DHM_TOKENB }}
+        run: |
+          # Secrets go over stdin so they never appear in a command line or log
+          printf 'DATAFORSYNINGEN_TOKEN=%s\nDHM_USERNAME=%s\nDHM_PASSWORD=%s\n' \
+            "$DATAFORSYNINGEN_TOKEN" "$DHM_USERNAME" "$DHM_PASSWORD" |
+            ssh -i ~/.ssh/deploy_key "deploy@${{ secrets.SERVER_HOST }}" \
+              'umask 077 && cat > /etc/machinemal/skraafoto.env'
+
+          ssh -i ~/.ssh/deploy_key "deploy@${{ secrets.SERVER_HOST }}" '
+            set -e
+            cd /opt/skraafoto
+            [ -d venv ] || python3 -m venv venv
+            venv/bin/pip install --quiet --upgrade pip
+            venv/bin/pip install --quiet -r app/requirements-server.txt
+            sudo systemctl restart skraafoto
+            for i in $(seq 1 30); do
+              curl -fsS http://127.0.0.1:8000/api/health && exit 0
+              sleep 2
+            done
+            echo "skraafoto did not become healthy"; sudo journalctl -u skraafoto -n 50 --no-pager; exit 1
+          '

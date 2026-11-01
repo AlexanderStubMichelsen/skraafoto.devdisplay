@@ -35,10 +35,8 @@ elif os.path.exists(".env.flask"):
 else:
     load_dotenv()
 
-# API credentials live only on the server. The deploy workflow writes them to
-# /etc/skraafoto/secrets.env (outside the web root); locally, use .env.flask.
-if os.path.exists("/etc/skraafoto/secrets.env"):
-    load_dotenv(dotenv_path="/etc/skraafoto/secrets.env", override=True)
+# API credentials live only on the server: systemd loads them from
+# /etc/machinemal/skraafoto.env (written by the deploy workflow). Locally, use .env.flask.
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
