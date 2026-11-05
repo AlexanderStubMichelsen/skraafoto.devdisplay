@@ -66,7 +66,7 @@ PLAN_GPKG_FILE = _resolve_default_gpkg_path()
 # ✅ If the GeoPackage is not deployed with the app (too large for free plan),
 # download it from GitHub LFS the first time the app starts.
 if not PLAN_GPKG_FILE.exists():
-    GPKG_URL = "https://github.com/AlexanderStubMichelsen/skraafoto.devdisplay/raw/Azure-SQLite-GeoPackage/plandata.gpkg"
+    GPKG_URL = "https://github.com/AlexanderStubMichelsen/skraafoto.devdisplay/raw/server/plandata.gpkg"
     logger.info("📦 GeoPackage not found locally, downloading from GitHub LFS...")
     resp = requests.get(GPKG_URL)
     resp.raise_for_status()
