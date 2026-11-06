@@ -1,72 +1,56 @@
-# Plandata / Zone Kort
-Afsluttende eksamensprojekt som er baseret på data fra Plandatas' WFS(Web Feature Service).
+# Skråfoto & Plandata
 
-Webapplikationen bruger OpenLayers Streetmap til at vise planer for de forskellige destinatiner i Danmark.
-Både som et udtræk af alle planer inden for en bestemt type, men også mere specifikt for adressesøgning.
+A web app for exploring Danish **oblique aerial photos** (skråfotos) and **planning zones** on a map, live at **[skraafoto.machinemal.eu](https://skraafoto.machinemal.eu)**.
 
-Det er resultatet af vores scriptarbejde med data og afspejler vores vilje til at visualizere data.
+It started as a final exam project (planning data) and an internship project (oblique photos) and has been developed further since.
 
-# Skraafoto
-Praktik projekt er den del der er baseret på Data Forsyningens Skråfoto tjeneste. 
+## Features
 
-Bruger OpenLayers Streetmap til at finde skråfotoer ud fra givne koordinater. 
-Billederne hentes via API fra Dataforsyningen, samt højdedata fra datafordelingen for at vise nøjagtige billeder. 
-Udviklet til Realview som et praktik projekt i 2024. 
+- **Oblique photo viewer:** search an address and see aerial photos of it from five directions (north, south, east, west and straight down), with the point marked using terrain elevation
+- **Multi-viewer:** compare several photo directions side by side
+- **Zone map:** municipal and local plans (kommuneplaner and lokalplaner) shown on an OpenLayers map, by layer or by address
 
-## Installation 
-> npm install
-### For development:
-> npm run dev
-### For server hosting:
-> npm run host
+## Data sources
 
-## /Python
-> python .\download_from_coordinates.py -f .\coordinates.txt     
-### Running tests: 
-> pytest -v 
+- [Dataforsyningen](https://dataforsyningen.dk/): the skråfoto STAC API, address search (gsearch) and address points
+- [Datafordeler](https://datafordeler.dk/): Danmarks Højdemodel (DHM) terrain elevation
+- Planning data from Plandata.dk, prepared with the scripts in [Plandata](https://github.com/AlexanderStubMichelsen/Plandata) and shipped as a GeoPackage (`plandata.gpkg`, stored with Git LFS)
 
-## API Setup
-Tokens need to be acquired and inserted into the configuration file at:
-skraafoto\src\util\configuration.js
+## Tech
 
-These are the tokens that are needed
-### API_STAC_TOKEN  
-- from  https://dataforsyningen.dk/                                                   (STAC TOKEN)
-### API_DHM_TOKENA  
-- from  https://datafordeler.dk/dataoversigt/danmarks-hoejdemodel-dhm/koter/          (DHM API service username)
-### API_DHM_TOKENB  
-- from  https://datafordeler.dk/dataoversigt/danmarks-hoejdemodel-dhm/koter/          (DHM API service password)
+React 18 + Vite + OpenLayers ([SAUL](https://www.npmjs.com/package/@dataforsyningen/saul) for skråfoto data) on the frontend; **Flask** + GeoPandas on the backend.
 
-**Status**: ✅ Elevation data (koter) is now working with updated DHM credentials!
+**API keys never reach the browser.** The Flask backend proxies all Dataforsyningen and Datafordeler calls under `/api/proxy/*` and adds the credentials server-side, including for the photo files themselves.
 
-## Virtual Environment
-> python -m venv .venv
+## Run locally
 
-### Activate the virtual environment on:
-#### Windows from root dir
-> .venv\Scripts\activate
+Requires Node 20 and Python 3.12+.
 
-#### MacOS/Linux from root dir
-> source .venv/bin/activate
+```bash
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.flask.example .env.flask                    # then fill in the three values below
+npm install
+npm run dev                                         # Flask on :5000 and Vite on :5173
+```
 
-## To install the dependencies from requirements.txt.
+`.env.flask`:
 
-### From root dir
-> pip install -r requirements.txt
+| Variable | Where to get it |
+|---|---|
+| `DATAFORSYNINGEN_TOKEN` | A token from [dataforsyningen.dk](https://dataforsyningen.dk/) |
+| `DHM_USERNAME`, `DHM_PASSWORD` | A service user (tjenestebruger) on [datafordeler.dk](https://datafordeler.dk/) with access to DHM |
 
-## Krav til at funktionalitet af points in polygon
-> flask --app postgress_connector run -h localhost
+Python tests: `pytest -v` (in `python/`).
 
-Dette er for at få python db connectionen til at virke
+## Deployment
 
-### Running on screen 
-To view currently running screens:
-> screen -ls 
+The `server` branch deploys automatically ([deploy-server.yml](.github/workflows/deploy-server.yml)): build the frontend, copy it together with the Flask app and GeoPackage to the server, write the credentials from repository secrets, install the Python dependencies ([requirements-server.txt](requirements-server.txt)) and restart the service behind gunicorn.
 
-The screen is setup with the name "skraafoto".
-To attach to the session it, write:
-> screen -r skraafoto
+## Python tools
 
-To detach press ctrl + A, then D 
+`python/download_from_coordinates.py` downloads skråfotos for a list of coordinates:
 
-
+```bash
+python python/download_from_coordinates.py -f python/coordinates.txt
+```
